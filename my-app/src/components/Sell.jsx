@@ -1,130 +1,194 @@
-import React, { useState } from 'react';
-import { Upload, X, Camera, MapPin, DollarSign, Tag, FileText } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import './sell.css';
+import React, { useState, useEffect } from "react";
+import { Upload, X, MapPin, DollarSign, Tag } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import "./sell.css"
+// import "./sell.css"; // Removed this line to fix the compilation error
 
 const Sell = () => {
   const [formData, setFormData] = useState({
-    title: '',
-    category: '',
-    description: '',
-    price: '',
-    condition: 'used',
-    location: '',
-    contactInfo: ''
+    title: "",
+    category: "",
+    description: "",
+    price: "",
+    condition: "used", // Default to 'used'
+    location: "",
+    contactInfo: "",
   });
   const [images, setImages] = useState([]);
   const [dragActive, setDragActive] = useState(false);
-  
   const navigate = useNavigate();
 
-  const categories = [
-    'Labcoats',
-    'Books',
-    'Calculators',
-    'EG Kit',
-    'Appliances',
-    'Clothing',
-    'School Supplies',
-    'Other'
-  ];
+  // --- FIX ---
+  // These names now match your router file (e.g., "Labcoats", "EgKit")
+  // This will prevent the "No routes matched" error on navigation.
+  const categories = ["Books", "Calculators", "Labcoats", "EgKit", "Drafters", "EgContainer"];
 
-  // Handle input change and form updates
+  useEffect(() => {
+    const savedDraft = localStorage.getItem("productDraft");
+    if (savedDraft) {
+      const draftData = JSON.parse(savedDraft);
+      setFormData(draftData);
+      setImages(draftData.images || []);
+    }
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-
-    // Redirect to /books when category is "Books"
-    if (name === 'category' && value === 'Books') {
-      navigate('/books');
-    }
+  };
+  
+  const handleConditionChange = (newCondition) => {
+      setFormData({ ...formData, condition: newCondition });
   };
 
-  // Handle drag and drop for images
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
+    if (e.type === "dragenter" || e.type === "dragover") {
       setDragActive(true);
-    } else if (e.type === 'dragleave') {
+    } else if (e.type === "dragleave") {
       setDragActive(false);
     }
   };
 
-  // Handle file drop
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFiles(e.dataTransfer.files);
     }
   };
 
-  // Handle files (images) selected by the user
   const handleFiles = (files) => {
-    Array.from(files).forEach(file => {
-      if (file.type.startsWith('image/')) {
+    Array.from(files).forEach((file) => {
+      if (file.type.startsWith("image/") && file.size <= 10 * 1024 * 1024) {
         const reader = new FileReader();
         reader.onload = (e) => {
           if (e.target?.result) {
-            setImages(prev => [...prev, e.target.result]);
+            setImages((prev) => [...prev, { file, preview: e.target.result }]);
           }
         };
         reader.readAsDataURL(file);
+      } else {
+        alert("File must be an image and less than 10MB!");
       }
     });
   };
 
-  // Remove an image from the preview
   const removeImage = (index) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+    setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Handle form submission (Publishing the product)
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    if (!formData.title || !formData.category || !formData.description || !formData.price || !formData.location) {
+      alert("All fields marked with * are required.");
+      return false;
+    }
+    if (!formData.condition) {
+        alert("Please select the product condition.");
+        return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log('Product listed:', { ...formData, images });
-    // Call API to save the product in the selected category (optional)
-    // Example API call to save product
-    // saveProductToCategory({ ...formData, images });
+    if (!validateForm()) {
+      return;
+    }
 
-    // Redirect to category page after publish
-    if (formData.category) {
-      navigate(`/${formData.category.toLowerCase()}`);
+    if (images.length === 0) {
+      alert("Please upload at least one product image!");
+      return;
+    }
+
+    const data = new FormData();
+    data.append("title", formData.title);
+    data.append("category", formData.category);
+    data.append("description", formData.description);
+    data.append("price", formData.price);
+    data.append("condition", formData.condition);
+    data.append("location", formData.location);
+    data.append("contactInfo", formData.contactInfo);
+    data.append("image", images[0].file); 
+
+    try {
+      const res = await axios.post("http://localhost:5000/api/sell/add", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (res.status === 200 || res.status === 201) {
+        
+        window.dispatchEvent(new Event('newProductPublished'));
+        
+        alert("✅ Product listed successfully!");
+        
+        localStorage.removeItem("productDraft");
+        setFormData({
+            title: "", category: "", description: "", price: "",
+            condition: "used", location: "", contactInfo: "",
+        });
+        setImages([]);
+
+        // This will now correctly navigate to "/labcoats", "/egkit", etc.
+        const categoryPath = formData.category.toLowerCase();
+        navigate(`/${categoryPath}`);
+      
+      } else {
+        alert("❌ Failed to list product. Please try again.");
+      }
+    } catch (err) {
+      console.error("Error uploading product:", err);
+      if (err.response) {
+        alert(`⚠️ Error: ${err.response.data.message || "Failed to upload product"}`);
+      } else {
+        alert("⚠️ An unexpected network error occurred. Check your server connection.");
+      }
     }
   };
 
-  // Handle Save Draft
   const handleSaveDraft = () => {
-    const draftData = { ...formData, images };
-    localStorage.setItem('productDraft', JSON.stringify(draftData));
-    alert('Draft saved successfully!');
+    localStorage.setItem("productDraft", JSON.stringify({ ...formData, images }));
+    alert("💾 Draft saved successfully!");
   };
 
+  // --- STYLING ---
+  // Added inline styles to make the component usable without the CSS file
   return (
-    <div className="sell-products-container">
-      <div className="header">
+    <div className="sell-products-container" style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+      <div className="header" style={{ textAlign: 'center', marginBottom: '30px' }}>
         <h1>Sell Your Product</h1>
         <p>List your item and reach thousands of students on campus</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="product-form">
-        <div className="image-upload-section">
+      <form onSubmit={handleSubmit} className="product-form" style={{ maxWidth: '800px', margin: '0 auto' }}>
+        {/* Image Upload Section */}
+        <div className="image-upload-section" style={{ marginBottom: '20px' }}>
           <h2>Product Images</h2>
           <div
-            className={`image-drop-area ${dragActive ? 'drag-active' : ''}`}
+            className={`image-drop-area ${dragActive ? "drag-active" : ""}`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
             onDrop={handleDrop}
+            style={{
+              border: `2px dashed ${dragActive ? '#3498db' : '#ccc'}`,
+              borderRadius: '10px',
+              padding: '30px',
+              textAlign: 'center',
+              backgroundColor: dragActive ? '#f0f8ff' : '#fafafa',
+            }}
           >
-            <Upload className="upload-icon" />
-            <p className="upload-text">Drag and drop your images here</p>
-            <p className="or-text">or</p>
-            <label className="browse-button">
+            <Upload className="upload-icon" size={48} color="#3498db" style={{ margin: '0 auto 15px' }} />
+            <p className="upload-text" style={{ margin: '0 0 10px' }}>Drag and drop your images here</p>
+            <p className="or-text" style={{ margin: '0 0 10px' }}>or</p>
+            <label className="browse-button" style={{
+              backgroundColor: '#3498db', color: 'white', padding: '10px 15px',
+              borderRadius: '5px', cursor: 'pointer', display: 'inline-block'
+            }}>
               Browse Files
               <input
                 type="file"
@@ -132,24 +196,31 @@ const Sell = () => {
                 accept="image/*"
                 onChange={(e) => e.target.files && handleFiles(e.target.files)}
                 className="hidden"
+                style={{ display: 'none' }}
               />
             </label>
-            <p className="file-info">PNG, JPG, GIF up to 10MB each</p>
+            <p className="file-info" style={{ fontSize: '12px', color: '#777', marginTop: '10px' }}>
+              PNG, JPG, GIF up to 10MB each
+            </p>
           </div>
 
           {images.length > 0 && (
-            <div className="image-preview">
+            <div className="image-preview" style={{ display: 'flex', gap: '10px', marginTop: '15px', flexWrap: 'wrap' }}>
               {images.map((image, index) => (
-                <div key={index} className="image-preview-item">
-                  <img
-                    src={image}
-                    alt={`Preview ${index + 1}`}
-                    className="image-preview-img"
-                  />
+                <div key={index} className="image-preview-item" style={{ position: 'relative' }}>
+                  <img src={image.preview} alt={`Preview ${index + 1}`} className="image-preview-img" style={{
+                    width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px'
+                  }}/>
                   <button
                     type="button"
                     onClick={() => removeImage(index)}
                     className="remove-image-button"
+                    style={{
+                      position: 'absolute', top: '5px', right: '5px', background: 'rgba(0,0,0,0.5)',
+                      color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px',
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      lineHeight: '1'
+                    }}
                   >
                     <X size={16} />
                   </button>
@@ -159,135 +230,151 @@ const Sell = () => {
           )}
         </div>
 
-        <div className="product-details-section">
+        {/* Product Details Section */}
+        <div className="product-details-section" style={{ border: '1px solid #eee', borderRadius: '10px', padding: '20px' }}>
           <h2>Product Details</h2>
-
-          <div className="form-grid">
-            <div className="form-group">
-              <label>Product Title *</label>
+          <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div className="form-group" style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ marginBottom: '5px', fontWeight: 'bold' }}>Product Title *</label>
               <input
                 type="text"
                 name="title"
                 value={formData.title}
                 onChange={handleInputChange}
-                className="input-field"
-                placeholder="e.g., MacBook Pro 13inch 2021"
                 required
+                style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
               />
             </div>
 
-            <div className="form-group">
-              <label>Category *</label>
-              <div className="select-container">
-                <Tag className="select-icon" />
+            <div className="form-group" style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ marginBottom: '5px', fontWeight: 'bold' }}>Category *</label>
+              <div className="select-container" style={{ position: 'relative' }}>
+                <Tag className="select-icon" size={18} style={{ position: 'absolute', left: '10px', top: '12px', color: '#777' }} />
                 <select
                   name="category"
                   value={formData.category}
                   onChange={handleInputChange}
-                  className="input-field"
                   required
+                  style={{ padding: '10px 10px 10px 35px', borderRadius: '5px', border: '1px solid #ccc', width: '100%' }}
                 >
                   <option value="">Select a category</option>
-                  {categories.map((category, index) => (
-                    <option key={index} value={category}>{category}</option>
+                  {categories.map((cat, index) => (
+                    <option key={index} value={cat}>
+                      {cat}
+                    </option>
                   ))}
                 </select>
               </div>
             </div>
 
-            <div className="form-group">
-              <label>Price *</label>
-              <div className="input-container">
-                <DollarSign className="input-icon" />
+            <div className="form-group" style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ marginBottom: '5px', fontWeight: 'bold' }}>Price (₹) *</label>
+              <div className="input-container" style={{ position: 'relative' }}>
+                <DollarSign className="input-icon" size={18} style={{ position: 'absolute', left: '10px', top: '12px', color: '#777' }} />
                 <input
                   type="number"
                   name="price"
                   value={formData.price}
                   onChange={handleInputChange}
-                  className="input-field"
-                  placeholder="0.00"
+                  placeholder="Enter price"
                   min="0"
                   step="0.01"
                   required
+                  style={{ padding: '10px 10px 10px 35px', borderRadius: '5px', border: '1px solid #ccc', width: '100%' }}
                 />
               </div>
             </div>
-
-            <div className="form-group">
-              <label>Condition *</label>
-              <select
-                name="condition"
-                value={formData.condition}
-                onChange={handleInputChange}
-                className="input-field"
-                required
-              >
-                <option value="new">New</option>
-                <option value="used">Used - Like New</option>
-                <option value="good">Used - Good</option>
-                <option value="fair">Used - Fair</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Pickup Location *</label>
-              <div className="input-container">
-                <MapPin className="input-icon" />
+            
+            <div className="form-group" style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ marginBottom: '5px', fontWeight: 'bold' }}>Pickup Location *</label>
+              <div className="input-container" style={{ position: 'relative' }}>
+                <MapPin className="input-icon" size={18} style={{ position: 'absolute', left: '10px', top: '12px', color: '#777' }} />
                 <input
                   type="text"
                   name="location"
                   value={formData.location}
                   onChange={handleInputChange}
-                  className="input-field"
                   placeholder="e.g., Main Campus, Library"
                   required
+                  style={{ padding: '10px 10px 10px 35px', borderRadius: '5px', border: '1px solid #ccc', width: '100%' }}
                 />
               </div>
             </div>
 
-            <div className="form-group full-width">
-              <label>Description *</label>
+            <div className="form-group full-width" style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column' }}>
+              <label style={{ marginBottom: '5px', fontWeight: 'bold' }}>Condition *</label>
+              <div className="condition-buttons" style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                      type="button"
+                      className={`condition-btn ${formData.condition === 'new' ? 'active-condition' : ''}`}
+                      onClick={() => handleConditionChange('new')}
+                      style={{
+                        padding: '10px 15px', borderRadius: '20px', border: '1px solid',
+                        borderColor: formData.condition === 'new' ? '#3498db' : '#ccc',
+                        background: formData.condition === 'new' ? '#3498db' : 'white',
+                        color: formData.condition === 'new' ? 'white' : '#333',
+                        cursor: 'pointer', fontWeight: 'bold'
+                      }}
+                  >
+                      ✨ New 
+                  </button>
+                  <button
+                      type="button"
+                      className={`condition-btn ${formData.condition !== 'new' ? 'active-condition' : ''}`}
+                      onClick={() => handleConditionChange('used')}
+                      style={{
+                        padding: '10px 15px', borderRadius: '20px', border: '1px solid',
+                        borderColor: formData.condition !== 'new' ? '#3498db' : '#ccc',
+                        background: formData.condition !== 'new' ? '#3498db' : 'white',
+                        color: formData.condition !== 'new' ? 'white' : '#333',
+                        cursor: 'pointer', fontWeight: 'bold'
+                      }}
+                  >
+                      ♻️ Used
+                  </button>
+              </div>
+            </div>
+
+            <div className="form-group full-width" style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column' }}>
+              <label style={{ marginBottom: '5px', fontWeight: 'bold' }}>Description *</label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
                 rows={4}
-                className="input-field"
-                placeholder="Describe your item in detail. Include any defects, accessories, or special features..."
+                placeholder="Describe your item in detail..."
                 required
+                style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc', fontFamily: 'Arial' }}
               />
             </div>
 
-            <div className="form-group full-width">
-              <label>Contact Information</label>
+            <div className="form-group full-width" style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column' }}>
+              <label style={{ marginBottom: '5px', fontWeight: 'bold' }}>Contact Info (optional)</label>
               <input
                 type="text"
                 name="contactInfo"
                 value={formData.contactInfo}
                 onChange={handleInputChange}
-                className="input-field"
-                placeholder="Phone number or additional contact details (optional)"
+                placeholder="Phone number or email"
+                style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
               />
             </div>
           </div>
         </div>
 
-        <div className="safety-tips">
-          <h3>🛡️ Safety Tips</h3>
-          <ul>
-            <li>• Always meet in public, well-lit campus locations</li>
-            <li>• Verify the buyer's student ID before finalizing the sale</li>
-            <li>• Use cash or secure payment methods like Venmo/CashApp</li>
-            <li>• Trust your instincts - if something feels off, don't proceed</li>
-          </ul>
-        </div>
-
-        <div className="submit-buttons">
-          <button type="button" className="save-draft-button" onClick={handleSaveDraft}>
-            Save as Draft
+        {/* Submit and Save Draft */}
+        <div className="submit-buttons" style={{ display: 'flex', justifyContent: 'flex-end', gap: '15px', marginTop: '20px' }}>
+          <button type="button" className="save-draft-button" onClick={handleSaveDraft} style={{
+            padding: '12px 20px', borderRadius: '8px', border: '1px solid #777',
+            background: 'white', color: '#333', cursor: 'pointer', fontWeight: 'bold'
+          }}>
+            💾 Save Draft
           </button>
-          <button type="submit" className="publish-button">
-            Publish Product
+          <button type="submit" className="publish-button" style={{
+            padding: '12px 20px', borderRadius: '8px', border: 'none',
+            background: '#2ecc71', color: 'white', cursor: 'pointer', fontWeight: 'bold'
+          }}>
+            🚀 Publish Product
           </button>
         </div>
       </form>

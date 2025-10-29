@@ -11,14 +11,14 @@ const About = () => {
    {
   name: "Old Lab Coat",
   description: "Affordable pre-loved lab coats, perfect for your first year practical sessions. They’re comfortable, reliable, and budget-friendly!",
-  path: "/labcoat",
+  path: "/labcoats",
   
 },
 
     { 
       name: "New Lab Coat", 
       description: "Brand new lab coats for those who love a fresh start. Look sharp and experiment safely in style.", 
-      path: "/labcoat"
+      path: "/labcoats"
     },
     { 
       name: "Books", 
@@ -28,22 +28,22 @@ const About = () => {
     { 
       name: "Calculator", 
       description: "Scientific calculators tested and approved by toppers. A must-have for exams, labs, and solving tricky problems on the go.", 
-      path: "/calculator"
+      path: "/calculators"
     },
     { 
       name: "Drafter", 
       description: "Top-notch drafting tools for precise engineering drawing classes. Durable, accurate, and student-friendly.", 
-      path: "/drafter"
+      path: "/drafters"
     },
     { 
-      name: "Stationery Kit", 
+      name: "EG Kit", 
       description: "Pens, pencils, markers, rulers, and highlighters – everything bundled in one perfect kit.", 
-      path: "/stationery"
+      path: "/egkit"
     },
     { 
-      name: "Lab Instruments", 
+      name: "EG Container", 
       description: "Affordable lab essentials, including glassware, wires, multimeters, and resistors to fuel your projects.", 
-      path: "/lab-instruments"
+      path: "/egcontainer"
     },
     { 
       name: "Electronics", 

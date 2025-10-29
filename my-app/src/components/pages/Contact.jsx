@@ -20,6 +20,7 @@ const Contact = () => {
     e.preventDefault();
     // Handle form submission (e.g., send data to server)
     console.log('Form Submitted:', formData);
+    alert('Message sent successfully!')
   };
 
   return (

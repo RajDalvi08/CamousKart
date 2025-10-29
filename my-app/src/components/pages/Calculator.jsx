@@ -1,111 +1,174 @@
 import React, { useState, useEffect } from "react";
-import "./calculator.css"; // Create a separate CSS file for styling
+import "./calculator.css";
+// import "./calculator.css"; // Removed to prevent compilation errors
+// import { useLocation } from "react-router-dom"; // No longer needed
+
+// 🖼 Helper function for safe Base64 image handling
+const getImageSrc = (imgData) => {
+ if (!imgData) return "placeholder.png";
+if (imgData.startsWith("data:")) return imgData;
+ return `data:image/jpeg;base64,${imgData}`;
+};
 
 const Calculator = () => {
-  const [activeTab, setActiveTab] = useState("new");
-  const [cart, setCart] = useState(() => {
-    const savedCart = localStorage.getItem("cart");
-    return savedCart ? JSON.parse(savedCart) : [];
-  });
-  const [cartMessage, setCartMessage] = useState('');  // Feedback message when an item is added
+const [activeTab, setActiveTab] = useState("new");
 
-  // Handle cart count
-  const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
+  // --- CART LOGIC (Unchanged from your version) ---
+  const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem("cart");
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
+  const [cartMessage, setCartMessage] = useState("");
+  const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-  // Add to cart functionality
-  const addToCart = (item) => {
-    const existingProduct = cart.find((cartItem) => cartItem.id === item.id);
-    let updatedCart;
+  // --- NEW SERVER DATA STATE (Pattern from Book.jsx) ---
+  const [newCalculators, setNewCalculators] = useState([]);
+  const [oldCalculators, setOldCalculators] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    // Convert price to a number (remove '$' and convert to float)
-    const price = parseFloat(item.price.replace("$", ""));
+  // 🧮 NEW: Function to fetch calculators (Pattern from Book.jsx)
+  const fetchCalculators = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // --- FIX: Corrected the URL to match server.js ---
+      const response = await fetch("http://localhost:5000/api/products/calculators");
+      
+      if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+      }
 
-    if (existingProduct) {
-      updatedCart = cart.map((cartItem) =>
-        cartItem.id === item.id
-          ? { ...cartItem, quantity: cartItem.quantity + 1 }
-          : cartItem
-      );
-    } else {
-      updatedCart = [...cart, { ...item, price, quantity: 1 }];
-    }
+      const data = await response.json(); // Expects a single array
+      console.log("Fetched calculators:", data);
 
-    setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-    setCartMessage(`${item.name} has been added to your cart!`);
-    setTimeout(() => setCartMessage(''), 3000);  // Clear message after 3 seconds
-  };
+      // --- Split data just like Book.jsx's logic ---
+      // (Book.jsx gets this from the server, we do it here)
+      const newCalcs = data.filter(calc => calc.condition === 'new');
+      const oldCalcs = data.filter(calc => calc.condition !== 'new');
 
-  // Remove item from cart
-  const removeItem = (id) => {
-    const updatedCart = cart.filter((item) => item.id !== id);
-    setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-  };
+      setNewCalculators(newCalcs);
+      setOldCalculators(oldCalcs);
 
-  // Calculators Data (New and Used)
-  const newCalculators = [
-    { id: 1, name: "Scientific Calculator", img: "https://example.com/scientific-calculator.jpg", price: "$20" },
-    { id: 2, name: "Graphing Calculator", img: "https://example.com/graphing-calculator.jpg", price: "$40" },
-    { id: 3, name: "Scientific Solar Calculator", img: "https://example.com/scientific-solar-calculator.jpg", price: "$25" },
-    { id: 4, name: "Casio FX-82", img: "https://example.com/casio-fx82.jpg", price: "$30" },
-    { id: 5, name: "Sharp EL-W516X", img: "https://example.com/sharp-calculator.jpg", price: "$45" },
-  ];
+    } catch (err) {
+      console.error("Error fetching calculators:", err);
+      setError("Failed to load calculators. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const usedCalculators = [
-    { id: 6, name: "Used Scientific Calculator", img: "https://example.com/used-scientific-calculator.jpg", price: "$12" },
-    { id: 7, name: "Old Graphing Calculator", img: "https://example.com/old-graphing-calculator.jpg", price: "$15" },
-    { id: 8, name: "Vintage Scientific Calculator", img: "https://example.com/vintage-scientific-calculator.jpg", price: "$10" },
-  ];
+  // --- MODIFIED: useEffect to fetch and listen (Pattern from Book.jsx) ---
+  useEffect(() => {
+    // 1. Initial Load from server
+    fetchCalculators();
 
-  // Determine which products to display based on active tab
-  const displayedItems = activeTab === "new" ? newCalculators : usedCalculators;
+    // 2. Setup Custom Event Listener
+    // This listens for the event from Sell.jsx
+    const handleProductUpdate = () => {
+      console.log("New product published, re-fetching calculator list...");
+      fetchCalculators();
+    };
 
-  return (
-    <div className="calculator-page">
-      {/* Cart Icon and Count */}
-      <div className="cart-icon">
-        <span className="cart-count">{cartCount}</span>
-        <img src="cart-icon.png" alt="Cart" />
-      </div>
+    window.addEventListener('newProductPublished', handleProductUpdate);
 
-      {/* Tab Buttons */}
-      <div className="button-group">
-        <button
-          className={`tab-btn ${activeTab === "new" ? "active" : ""}`}
-          onClick={() => setActiveTab("new")}
-        >
-          🧮 New Calculators
-        </button>
-        <button
-          className={`tab-btn ${activeTab === "old" ? "active" : ""}`}
-          onClick={() => setActiveTab("old")}
-        >
-          🧮 Used Calculators
-        </button>
-      </div>
+    // 3. Cleanup: Remove the listener
+    return () => {
+      window.removeEventListener('newProductPublished', handleProductUpdate);
+    };
+  }, []); // Empty array ensures this runs only once on mount
 
-      {/* Calculators Grid */}
-      <div className="calculator-container">
-        {displayedItems.map((item) => (
-          <div className="calculator-card" key={item.id}>
-            <img src={item.img} alt={item.name} className="calculator-image" />
-            <h3>{item.name}</h3>
-            <p className="price">${parseFloat(item.price.replace("$", "")).toFixed(2)}</p>
-            <button
-              className="add-btn"
-              onClick={() => addToCart(item)} // Add item to cart
-            >
-              Add to Cart
-            </button>
-          </div>
-        ))}
-      </div>
+  // 🛍 Add to cart (Unchanged from your version)
+  const addToCart = (item) => {
+    const existing = cart.find((i) => i.id === item._id);
+    let updatedCart;
 
-      {/* Cart Message */}
-      {cartMessage && <div className="cart-message">{cartMessage}</div>}
-    </div>
-  );
+    if (existing) {
+      updatedCart = cart.map((i) =>
+        i.id === item._id ? { ...i, quantity: i.quantity + 1 } : i
+      );
+    } else {
+      updatedCart = [...cart, { ...item, id: item._id, quantity: 1 }];
+    }
+
+    setCart(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+
+    setCartMessage(`'${item.title || item.name}' has been added to your cart!`);
+    setTimeout(() => setCartMessage(""), 3000);
+  };
+
+  // --- RENDER LOGIC ---
+
+  // NEW: Handle Loading and Error states (Pattern from Book.jsx)
+  if (loading) {
+    return <div className="calculator-page"><p className="no-calculators">Loading calculators...</p></div>;
+  }
+
+  if (error) {
+    return <div className="calculator-page"><p className="no-calculators">{error}</p></div>;
+  }
+
+  // --- MODIFIED: Use the new state variables (Pattern from Book.jsx) ---
+  const displayedCalculators = activeTab === "new" ? newCalculators : oldCalculators;
+
+  return (
+    <div className="calculator-page">
+      {/* 🛒 Cart Icon and Count */}
+      <div className="cart-icon">
+        <span className="cart-count">{cartCount}</span>
+        <img src="cart-icon.png" alt="Cart" />
+      </div>
+
+      {/* 🔘 Tabs */}
+      <div className="button-group">
+        <button
+          className={`tab-btn ${activeTab === "new" ? "active" : ""}`}
+          onClick={() => setActiveTab("new")}
+        >
+          🧮 New Calculators
+        </button>
+        <button
+          className={`tab-btn ${activeTab === "old" ? "active" : ""}`}
+Â         onClick={() => setActiveTab("old")}
+        >
+          🔢 Old Calculators
+        </button>
+      </div>
+
+      {/* 🧾 Calculators Grid */}
+      <div className="calculator-container">
+        {displayedCalculators.length > 0 ? (
+          displayedCalculators.map((calc) => (
+            <div className="calculator-card" key={calc._id}>
+              <img
+                src={
+                  // This part is specific to your calculator data, which is correct
+                  calc.images && calc.images.length
+                    ? getImageSrc(calc.images[0])
+                    : "placeholder.png"
+                }
+alt={calc.title || calc.name}
+className="calculator-image"
+ />
+<h3>{calc.title || calc.name}</h3>
+<p className="price">₹{parseFloat(calc.price).toFixed(2)}</p>
+ <button className="add-btn" onClick={() => addToCart(calc)}>
+ Add to Cart
+ </button>
+ </div>
+))
+ ) : (
+ <p className="no-calculators">
+ No {activeTab} calculators available yet.
+</p>
+)}
+</div>
+
+ {/* 🧾 Cart Message */}
+ {cartMessage && <div className="cart-message">{cartMessage}</div>}
+ </div>
+ );
 };
 
 export default Calculator;

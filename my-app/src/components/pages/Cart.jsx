@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "./cart.css";
+import { useNavigate } from "react-router-dom";
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
+  const navigate = useNavigate();
 
   // Sync cartItems with localStorage on initial load or cart change
   useEffect(() => {
@@ -43,9 +45,14 @@ const Cart = () => {
     calculateTotal(updatedCart);
   };
 
+  //checkout section
+ const checkout = () => {
+  navigate("/checkout", { state: { cartItems } });
+};
+
   return (
     <div className="cart-container">
-      <h2>Your Cart</h2>
+      <h2> Cart</h2>
       <div className="cart-items">
         {cartItems.length === 0 ? (
           <p>Your cart is empty.</p>
@@ -55,18 +62,18 @@ const Cart = () => {
               <img src={item.img} alt={item.name} />
               <h3>{item.name}</h3>
               <p>
-                ${item.price.toFixed(2)} x {item.quantity}  {/* Display price as number */}
+                Rs.{item.price.toFixed(2)} x {item.quantity}  {/* Display price as number */}
               </p>
-              <button onClick={() => removeItem(item.id)}>Remove</button>
+              <button className="remove-btn" onClick={() => removeItem(item.id)}>Remove</button>
             </div>
           ))
         )}
       </div>
       <div className="cart-summary">
         <div id="total-price">
-          Total Price: ${totalPrice.toFixed(2)}
+          Total Price: Rs.{totalPrice.toFixed(2)}
         </div>
-        <button>Proceed to Checkout</button>
+        <button onClick={checkout}>Proceed to Checkout</button>
       </div>
     </div>
   );

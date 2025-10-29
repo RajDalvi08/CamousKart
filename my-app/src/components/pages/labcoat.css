@@ -38,7 +38,7 @@
 /* Lab Coats Grid */
 .labcoat-container {
   display: flex;
-  gap: 30px;
+  gap: 50px;
   flex-wrap: wrap;
   justify-content: center;
   background: url('https://png.pngtree.com/background/20230614/original/pngtree-lab-coat-hanging-on-a-rack-picture-image_3503422.jpg');
@@ -49,7 +49,7 @@
 .labcoat-card {
   background: #fff;
   border-radius: 16px;
-  padding: 28px 24px;
+  padding: 28px 44px;
   text-align: center;
   box-shadow: 0 10px 20px rgb(30, 121, 102),
               0 6px 6px rgba(234, 234, 234, 0.975);
@@ -58,7 +58,7 @@
 
 .labcoat-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 0px 12px 30px rgba(13, 130, 143, 0.771);
 }
 
 .labcoat-image {
@@ -114,4 +114,8 @@
   color: #fff;
   padding: 10px;
   border-radius: 5px;
+}
+
+.fav-icon.filled {
+margin-left: 40%;
 }

@@ -175,3 +175,11 @@ body {
     top: 30%;
   }
 }
+.eye-icon1 {
+  position: absolute;
+  right: 40px;
+  top: 73.5%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 20px;
+}

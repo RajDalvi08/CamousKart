@@ -56,10 +56,10 @@
 /* Glow animation */
 @keyframes glow-light {
   from {
-    text-shadow: 0 0 10px #2ca1b6, 0 0 20px #a7cdf1;
+    text-shadow: 0 0 10px #8b8e8f, 0 0 20px #666769;
   }
   to {
-    text-shadow: 0 0 20px #0a0f14, 0 0 40px #4a90e2;
+    text-shadow: 0 0 20px #000000bc, 0 0 40px #666768;
   }
 }
 

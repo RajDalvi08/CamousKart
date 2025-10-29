@@ -1,14 +1,10 @@
-
 /* Main Container */
 .sell-products-container {
   max-width: 2000px;
   margin: 0 auto;
   padding: 20px;
   font-family: Arial, sans-serif;
-   background: linear-gradient(135deg, #e2e5e8, #687a753f); 
-
-  
-  
+  background: linear-gradient(135deg, #e2e5e8, #687a753f);
 }
 
 /* Header */
@@ -18,7 +14,7 @@
 }
 
 .header h1 {
- font-size: 3rem;
+  font-size: 3rem;
   font-weight: 800;
   text-transform: uppercase;
   margin-bottom: 20px;
@@ -124,9 +120,10 @@
   padding: 5px;
 }
 
+/* Image size modification for smaller previews */
 .image-preview-img {
-  width: 100px;
-  height: 100px;
+  width: 60px; /* Reduced width */
+  height: 60px; /* Reduced height */
   object-fit: cover;
   border-radius: 5px;
 }
@@ -138,9 +135,10 @@
   background-color: rgba(0, 0, 0, 0.6);
   border: none;
   color: white;
-  padding: 5px;
+  padding: 3px; /* Adjusted padding */
   cursor: pointer;
   border-radius: 50%;
+  font-size: 0.7rem; /* Adjusted font size for icon */
 }
 
 .remove-image-button:hover {
@@ -166,7 +164,10 @@
 }
 
 .input-field,
-select {
+select, 
+.product-details-section input[type="text"], 
+.product-details-section input[type="number"], 
+.product-details-section textarea { /* Added explicit selector for inputs/textarea */
   padding: 10px;
   font-size: 1rem;
   border: 1px solid #ddd;
@@ -176,10 +177,21 @@ select {
 .input-container {
   display: flex;
   align-items: center;
+  border: 1px solid #ddd; /* Move border to container for consistent look with icon */
+  border-radius: 5px;
+  padding: 0; /* Remove container padding */
+}
+
+.input-container input {
+  border: none; /* Remove border from input field itself */
+  padding: 10px;
+  flex-grow: 1;
 }
 
 .input-icon {
-  margin-right: 10px;
+  margin-left: 10px;
+  margin-right: 0;
+  color: #888;
 }
 
 textarea {
@@ -250,3 +262,42 @@ label {
 .publish-button:hover {
   background-color: #0056b3;
 }
+/* ... (Keep existing CSS up to the product-details-section) ... */
+
+/* Condition Button Styling */
+.condition-buttons-group {
+    /* Ensures the buttons span the full width of the grid */
+    grid-column: span 2; 
+    margin-top: 10px;
+}
+
+.condition-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.condition-btn {
+    flex-grow: 1;
+    padding: 10px 15px;
+    font-size: 1rem;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    background-color: #f8f8f8;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #555;
+    font-weight: 600;
+}
+
+.condition-btn:hover {
+    border-color: #007BFF;
+}
+
+.condition-btn.active-condition {
+    background-color: #007BFF;
+    color: white;
+    border-color: #007BFF;
+    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
+}
+
+/* ... (Keep existing CSS for Safety Tips and Submit Buttons) ... */

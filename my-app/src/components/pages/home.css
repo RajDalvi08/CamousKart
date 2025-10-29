@@ -120,7 +120,7 @@ body {
   /* Gradient + Image */
   background: 
     radial-gradient(circle, rgba(114, 224, 198, 0.064), rgba(3, 21, 21, 0.5)),
-    url('https://png.pngtree.com/background/20230524/original/pngtree-an-electronic-ecommerce-computer-screen-with-a-tent-top-in-3d-picture-image_2711691.jpg') center/cover no-repeat;
+    url('https://news.mcmaster.ca/app/uploads/2025/08/DNBW-980x580-105.png') center/cover no-repeat;
 
   background-size: cover;
   background-position: center;
@@ -150,6 +150,7 @@ body {
   margin-bottom: 18px;
   letter-spacing: 0.05em;
   text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+ padding-left: 10%;
 }
 
 .hero-content p {
@@ -158,6 +159,7 @@ body {
   line-height: 1.6;
   color: #e0f7f3;
   font-weight: 500;
+  padding-left: 5%;
 }
 
 /* Grid */
@@ -325,4 +327,35 @@ body {
   width: 280px;
   max-width: 100%;
   text-align: center;
+}
+
+/* Favorite icon on product */
+.product-image-container {
+  position: relative;
+}
+
+.fav-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #ffffff;
+  border: none;
+  border-radius: 50%;
+  padding: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.fav-btn:hover {
+  transform: scale(1.15);
+}
+
+.fav-icon {
+  color: #ff3b3b;
+  font-size: 1.3rem;
+}
+
+.fav-icon.filled {
+  color: #e63946; /* Filled red heart when favorited */
 }
