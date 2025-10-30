@@ -1,169 +1,128 @@
 import React, { useState, useEffect } from "react";
 import "./drafter.css";
-// 🖼 Helper function for safe Base64 image handling
+
 const getImageSrc = (imgData) => {
   if (!imgData) return "placeholder.png";
   if (imgData.startsWith("data:")) return imgData;
-  return `data:image/jpeg;base64,${imgData}`;
+  return `http://localhost:5000/${imgData}`; // 👈 Match Calculator.jsx logic
 };
 
 const Drafter = () => {
   const [activeTab, setActiveTab] = useState("new");
-
-  // --- CART LOGIC ---
-  const [cart, setCart] = useState(() => {
-    const savedCart = localStorage.getItem("cart");
-    return savedCart ? JSON.parse(savedCart) : [];
-  });
+  const [cart, setCart] = useState(() => JSON.parse(localStorage.getItem("cart")) || []);
   const [cartMessage, setCartMessage] = useState("");
-  const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
-
-  // --- SERVER DATA STATE ---
   const [newDrafters, setNewDrafters] = useState([]);
   const [oldDrafters, setOldDrafters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 🖊️ NEW: Function to fetch drafters
+  // ✅ Fetch Drafters by Category (same pattern as Calculator.jsx)
   const fetchDrafters = async () => {
     setLoading(true);
-    setError(null);
     try {
-      const response = await fetch("http://localhost:5000/api/products/drafters");
+      // Make sure backend supports /api/products/category/drafters
+      const response = await fetch("http://localhost:5000/api/products/category/drafters");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json(); // Expects a single array
       console.log("Fetched drafters:", data);
 
-      // --- Split data ---
-      const newItems = data.filter(item => item.condition === 'new');
-      const oldItems = data.filter(item => item.condition !== 'new');
-
-      setNewDrafters(newItems);
-      setOldDrafters(oldItems);
-
+      // ✅ Separate by condition
+      setNewDrafters(data.filter((d) => d.condition === "new"));
+      setOldDrafters(data.filter((d) => d.condition === "used"));
     } catch (err) {
       console.error("Error fetching drafters:", err);
-      setError("Failed to load drafters. Please try again later.");
+      setError("Failed to fetch drafters");
     } finally {
       setLoading(false);
     }
   };
 
-  // --- useEffect to fetch and listen ---
+  // ✅ Re-fetch when new product is published
   useEffect(() => {
-    // 1. Initial Load from server
     fetchDrafters();
 
-    // 2. Setup Custom Event Listener
-    const handleProductUpdate = () => {
-      console.log("New product published, re-fetching drafter list...");
+    const handleNewProduct = () => {
+      console.log("New product detected, refetching drafters...");
       fetchDrafters();
     };
 
-    window.addEventListener('newProductPublished', handleProductUpdate);
+    window.addEventListener("newProductPublished", handleNewProduct);
 
-    // 3. Cleanup: Remove the listener
     return () => {
-      window.removeEventListener('newProductPublished', handleProductUpdate);
+      window.removeEventListener("newProductPublished", handleNewProduct);
     };
-  }, []); // Empty array ensures this runs only once on mount
+  }, []);
 
-  // 🛍 Add to cart
+  // ✅ Add to Cart (same as Calculator.jsx)
   const addToCart = (item) => {
-    const existing = cart.find((i) => i.id === item.id);
-    let updatedCart;
+    const existing = cart.find((i) => i._id === item._id);
+    const updated = existing
+      ? cart.map((i) => (i._id === item._id ? { ...i, quantity: i.quantity + 1 } : i))
+      : [...cart, { ...item, quantity: 1 }];
 
-    if (existing) {
-      updatedCart = cart.map((i) =>
-        i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
-      );
-    } else {
-      updatedCart = [...cart, { ...item, quantity: 1 }];
-    }
+    setCart(updated);
+    localStorage.setItem("cart", JSON.stringify(updated));
 
-    setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-
-    setCartMessage(`'${item.name}' has been added to your cart!`);
+    setCartMessage(`'${item.title || item.name}' added to cart!`);
     setTimeout(() => setCartMessage(""), 3000);
   };
 
-  // --- RENDER LOGIC ---
+  const displayed = activeTab === "new" ? newDrafters : oldDrafters;
 
-  if (loading) {
-    return <div className="drafter-page"><p className="no-drafters">Loading drafters...</p></div>;
-  }
-
-  if (error) {
-    return <div className="drafter-page"><p className="no-drafters">{error}</p></div>;
-  }
-
-  const displayedDrafters = activeTab === "new" ? newDrafters : oldDrafters;
+  if (loading) return <p>Loading drafters...</p>;
+  if (error) return <p>{error}</p>;
 
   return (
-    <>
-      
-      
-
-      <div className="drafter-page">
-        {/* 🛒 Cart Icon and Count */}
-        <div className="cart-icon">
-          <span className="cart-count">{cartCount}</span>
-          <img src="cart-icon.png" alt="Cart" />
-        </div>
-
-        {/* 🔘 Tabs */}
-        <div className="button-group">
-          <button
-            className={`tab-btn ${activeTab === "new" ? "active" : ""}`}
-            onClick={() => setActiveTab("new")}
-          >
-            🖊️ New Drafters
-          </button>
-          <button
-            className={`tab-btn ${activeTab === "old" ? "active" : ""}`}
-            onClick={() => setActiveTab("old")}
-          >
-            🖊️ Used Drafters
-          </button>
-        </div>
-
-        {/* 🧾 Drafters Grid */}
-        <div className="drafter-container">
-          {displayedDrafters.length > 0 ? (
-            displayedDrafters.map((item) => (
-              <div className="drafter-card" key={item.id}>
-                <img
-                  src={
-                    item.img
-                      ? getImageSrc(item.img)
-                      : "placeholder.png"
-                  }
-                  alt={item.name}
-                  className="drafter-image"
-                />
-                <h3>{item.name}</h3>
-                <p className="price">₹{parseFloat(item.price).toFixed(2)}</p>
-                <button className="add-btn" onClick={() => addToCart(item)}>
-                  Add to Cart
-                </button>
-              </div>
-            ))
-          ) : (
-            <p className="no-drafters">
-              No {activeTab} drafters available yet.
-            </p>
-          )}
-        </div>
-
-        {/* 🧾 Cart Message */}
-        {cartMessage && <div className="cart-message">{cartMessage}</div>}
+    <div className="drafter-page">
+      {/* 🛒 Cart Icon */}
+      <div className="cart-icon">
+        <span className="cart-count">
+          {cart.reduce((acc, item) => acc + item.quantity, 0)}
+        </span>
+        <img src="cart-icon.png" alt="Cart" />
       </div>
-    </>
+
+      {/* 🔘 Tabs */}
+      <div className="button-group">
+        <button
+          className={`tab-btn ${activeTab === "new" ? "active" : ""}`}
+          onClick={() => setActiveTab("new")}
+        >
+          ✏️ New Drafters
+        </button>
+        <button
+          className={`tab-btn ${activeTab === "old" ? "active" : ""}`}
+          onClick={() => setActiveTab("old")}
+        >
+          🧾 Used Drafters
+        </button>
+      </div>
+
+      {/* 📦 Drafter Cards */}
+      <div className="drafter-container">
+        {displayed.length > 0 ? (
+          displayed.map((drafter) => (
+            <div key={drafter._id} className="drafter-card">
+              <img
+                src={drafter.images?.[0] ? getImageSrc(drafter.images[0]) : "placeholder.png"}
+                alt={drafter.title || drafter.name}
+                className="drafter-image"
+              />
+              <h3>{drafter.title || drafter.name}</h3>
+              <p className="price">₹{drafter.price}</p>
+              <button className="add-btn" onClick={() => addToCart(drafter)}>
+                Add to Cart
+              </button>
+            </div>
+          ))
+        ) : (
+          <p>No {activeTab} drafters available.</p>
+        )}
+      </div>
+
+      {cartMessage && <div className="cart-message">{cartMessage}</div>}
+    </div>
   );
 };
 

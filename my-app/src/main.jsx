@@ -90,7 +90,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         />
         // ...
         <Route
-          path="labcoats"  // <--- This is the correct path
+          path="labcoat"  // <--- This is the correct path
           element={
             <ProtectedRoute>
               <Labcoat />
@@ -124,7 +124,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           }
         />
         <Route
-          path="EgKit"
+          path="egkit"
           element={
             <ProtectedRoute>
               <EgKit />
@@ -132,7 +132,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           }
         />
         <Route
-          path="EgContainer"
+          path="egcontainer"
           element={
             <ProtectedRoute>
               <EGContainer />

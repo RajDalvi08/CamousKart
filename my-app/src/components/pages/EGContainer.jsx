@@ -1,165 +1,129 @@
 import React, { useState, useEffect } from "react";
-import "./egcontainer.css"; // Using external CSS file
+import "./egcontainer.css"; // ✅ Same modern grid/card style as Book.jsx
 
-// 🖼 Helper function for safe Base64 image handling
+// 🖼️ Helper for image source
 const getImageSrc = (imgData) => {
-  if (!imgData) return "https://placehold.co/150x200/eee/ccc?text=No+Image";
+  if (!imgData) return "placeholder.png";
   if (imgData.startsWith("data:")) return imgData;
-  return `data:image/jpeg;base64,${imgData}`;
+  return `http://localhost:5000/${imgData}`; // Matches other product pages
 };
 
-const EGContainer = () => {
+const EgContainer = () => {
   const [activeTab, setActiveTab] = useState("new");
-  const [cart, setCart] = useState(() => {
-    const savedCart = localStorage.getItem("cart");
-    return savedCart ? JSON.parse(savedCart) : [];
-  });
-  
-  // --- Pop-up message state ---
+  const [cart, setCart] = useState(() => JSON.parse(localStorage.getItem("cart")) || []);
   const [cartMessage, setCartMessage] = useState("");
-
-  // --- Server data states (like Book.jsx) ---
-  const [newItems, setNewItems] = useState([]);
-  const [oldItems, setOldItems] = useState([]);
+  const [newContainers, setNewContainers] = useState([]);
+  const [oldContainers, setOldContainers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
-
-  // ✅ MODIFIED: Fetch products (async/await pattern)
-  const fetchProducts = async () => {
+  // ✅ Fetch EG Containers by category
+  const fetchEgContainers = async () => {
     setLoading(true);
-    setError(null);
     try {
-      // This endpoint is from your original file
-      const response = await fetch("http://localhost:5000/api/products/EgContainer");
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+      // Make sure backend supports /api/products/egcontainer
+      const response = await fetch("http://localhost:5000/api/products/egcontainer");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
-      console.log("Fetched EG Containers/Gadgets:", data);
 
-      // Split data into new and old
-      const freshItems = data.filter(item => item.condition === 'new');
-      const usedItems = data.filter(item => item.condition !== 'new');
+      console.log("Fetched EG Containers:", data);
 
-      setNewItems(freshItems);
-      setOldItems(usedItems);
-
+      // ✅ Separate by condition
+      setNewContainers(data.filter((p) => p.condition === "new"));
+      setOldContainers(data.filter((p) => p.condition === "used"));
     } catch (err) {
-      console.error("Error fetching gadgets:", err);
-      setError("Failed to load gadgets. Please try again later.");
+      console.error("Error fetching EG Containers:", err);
+      setError("Failed to fetch EG Containers");
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ MODIFIED: useEffect to fetch and listen
+  // ✅ Auto-refresh when new product is published
   useEffect(() => {
-    fetchProducts();
-    const handleProductUpdate = () => {
-      console.log("New product published, re-fetching EG Container list...");
-      fetchProducts();
-    };
-    window.addEventListener('newProductPublished', handleProductUpdate);
-    return () => {
-      window.removeEventListener('newProductPublished', handleProductUpdate);
-    };
-  }, []); 
+    fetchEgContainers();
 
-  // ✅ MODIFIED: Add to cart (uses message, not alert)
+    const handleNewProduct = () => {
+      console.log("Detected new EG container, refetching...");
+      fetchEgContainers();
+    };
+
+    window.addEventListener("newProductPublished", handleNewProduct);
+    return () => window.removeEventListener("newProductPublished", handleNewProduct);
+  }, []);
+
+  // ✅ Add to Cart logic
   const addToCart = (item) => {
-    const existing = cart.find((i) => i.id === item._id);
-    let updatedCart;
+    const existing = cart.find((i) => i._id === item._id);
+    const updated = existing
+      ? cart.map((i) => (i._id === item._id ? { ...i, quantity: i.quantity + 1 } : i))
+      : [...cart, { ...item, quantity: 1 }];
 
-    if (existing) {
-      updatedCart = cart.map((i) =>
-        i.id === item._id ? { ...i, quantity: i.quantity + 1 } : i
-      );
-    } else {
-      updatedCart = [...cart, { ...item, quantity: 1, id: item._id }];
-    }
+    setCart(updated);
+    localStorage.setItem("cart", JSON.stringify(updated));
 
-    setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-    
-    // Set message instead of alert
-    setCartMessage(`'${item.title || item.name}' has been added to your cart!`);
+    setCartMessage(`'${item.title || item.name}' added to cart!`);
     setTimeout(() => setCartMessage(""), 3000);
   };
 
-  // --- RENDER LOGIC ---
+  // ✅ Decide which set to show
+  const displayed = activeTab === "new" ? newContainers : oldContainers;
 
-  if (loading) {
-    return (
-      <div className="egcontainer-page">
-        <p className="loading-text">Loading Gadgets...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="egcontainer-page">
-        <p className="loading-text">{error}</p>
-      </div>
-    );
-  }
-
-  const displayedItems = activeTab === "new" ? newItems : oldItems;
+  if (loading) return <p>Loading EG Containers...</p>;
+  if (error) return <p>{error}</p>;
 
   return (
     <div className="egcontainer-page">
-      {/* Cart Icon */}
+      {/* 🛒 Floating Cart */}
       <div className="cart-icon">
-        <span className="cart-count">{cartCount}</span>
-        <img src="/cart-icon.png" alt="Cart" style={{ width: '24px', height: '24px' }} />
+        <span className="cart-count">
+          {cart.reduce((acc, item) => acc + item.quantity, 0)}
+        </span>
+        <img src="cart-icon.png" alt="Cart" />
       </div>
 
-      {/* Tabs */}
+      {/* 🔘 Tabs */}
       <div className="button-group">
         <button
           className={`tab-btn ${activeTab === "new" ? "active" : ""}`}
           onClick={() => setActiveTab("new")}
         >
-           New Containers
+          🆕 New Containers
         </button>
         <button
           className={`tab-btn ${activeTab === "old" ? "active" : ""}`}
           onClick={() => setActiveTab("old")}
         >
-           Used Containers
+          ♻️ Used Containers
         </button>
       </div>
 
-      {/* Gadget Grid */}
-      <div className="eg-container">
-        {displayedItems.length > 0 ? (
-          displayedItems.map((gadget) => (
-            <div className="eg-card" key={gadget._id}>
+      {/* 🧾 Product Cards */}
+      <div className="eg-grid">
+        {displayed.length > 0 ? (
+          displayed.map((item) => (
+            <div key={item._id} className="eg-card">
               <img
-                src={getImageSrc(gadget.images?.length ? gadget.images[0] : "")}
-                alt={gadget.title || gadget.name}
+                src={item.images?.[0] ? getImageSrc(item.images[0]) : "placeholder.png"}
+                alt={item.title || item.name}
                 className="eg-image"
               />
-              <h3>{gadget.title || gadget.name}</h3>
-              <p className="price">₹{gadget.price}</p>
-              <button className="add-btn" onClick={() => addToCart(gadget)}>
+              <h3>{item.title || item.name}</h3>
+              <p className="price">₹{item.price}</p>
+              <button className="add-btn" onClick={() => addToCart(item)}>
                 Add to Cart
               </button>
             </div>
           ))
         ) : (
-          <p className="loading-text">
-            No {activeTab} gadgets found.
-          </p>
+          <p>No {activeTab} containers available.</p>
         )}
       </div>
-      
-      {/* Cart Message */}
+
+      {/* ✅ Floating Add Message */}
       {cartMessage && <div className="cart-message">{cartMessage}</div>}
     </div>
   );
 };
 
-export default EGContainer;
+export default EgContainer;

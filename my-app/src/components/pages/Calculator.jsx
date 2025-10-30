@@ -1,126 +1,88 @@
 import React, { useState, useEffect } from "react";
 import "./calculator.css";
-// import "./calculator.css"; // Removed to prevent compilation errors
-// import { useLocation } from "react-router-dom"; // No longer needed
 
-// 🖼 Helper function for safe Base64 image handling
 const getImageSrc = (imgData) => {
- if (!imgData) return "placeholder.png";
-if (imgData.startsWith("data:")) return imgData;
- return `data:image/jpeg;base64,${imgData}`;
+  if (!imgData) return "placeholder.png";
+  if (imgData.startsWith("data:")) return imgData;
+  return `http://localhost:5000/${imgData}`; // 👈 Serve uploaded image
 };
 
 const Calculator = () => {
-const [activeTab, setActiveTab] = useState("new");
-
-  // --- CART LOGIC (Unchanged from your version) ---
-  const [cart, setCart] = useState(() => {
-    const savedCart = localStorage.getItem("cart");
-    return savedCart ? JSON.parse(savedCart) : [];
-  });
+  const [activeTab, setActiveTab] = useState("new");
+  const [cart, setCart] = useState(() => JSON.parse(localStorage.getItem("cart")) || []);
   const [cartMessage, setCartMessage] = useState("");
-  const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
-
-  // --- NEW SERVER DATA STATE (Pattern from Book.jsx) ---
   const [newCalculators, setNewCalculators] = useState([]);
   const [oldCalculators, setOldCalculators] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 🧮 NEW: Function to fetch calculators (Pattern from Book.jsx)
   const fetchCalculators = async () => {
     setLoading(true);
-    setError(null);
     try {
-      // --- FIX: Corrected the URL to match server.js ---
-      const response = await fetch("http://localhost:5000/api/products/calculators");
-      
-      if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+      // This URL is correct, assuming you fixed Sell.jsx to save the category as lowercase
+      const response = await fetch("http://localhost:5000/api/products/category/calculators");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
 
-      const data = await response.json(); // Expects a single array
       console.log("Fetched calculators:", data);
-
-      // --- Split data just like Book.jsx's logic ---
-      // (Book.jsx gets this from the server, we do it here)
-      const newCalcs = data.filter(calc => calc.condition === 'new');
-      const oldCalcs = data.filter(calc => calc.condition !== 'new');
-
-      setNewCalculators(newCalcs);
-      setOldCalculators(oldCalcs);
-
+      setNewCalculators(data.filter((c) => c.condition === "new"));
+      
+      // --- FIX 1 ---
+      // Changed "old" to "used" to match the data saved from Sell.jsx
+      setOldCalculators(data.filter((c) => c.condition === "used"));
     } catch (err) {
-      console.error("Error fetching calculators:", err);
-      setError("Failed to load calculators. Please try again later.");
+      setError("Failed to fetch calculators");
     } finally {
       setLoading(false);
     }
   };
 
-  // --- MODIFIED: useEffect to fetch and listen (Pattern from Book.jsx) ---
+  // --- FIX 2 ---
+  // Updated useEffect to listen for new products and refetch data
   useEffect(() => {
-    // 1. Initial Load from server
+    // 1. Fetch data on initial load
     fetchCalculators();
 
-    // 2. Setup Custom Event Listener
-    // This listens for the event from Sell.jsx
-    const handleProductUpdate = () => {
-      console.log("New product published, re-fetching calculator list...");
-      fetchCalculators();
-    };
+    // 2. Define a function to handle the event
+    const handleNewProduct = () => {
+      console.log("New product detected, refetching calculators...");
+      fetchCalculators();
+    };
 
-    window.addEventListener('newProductPublished', handleProductUpdate);
+    // 3. Listen for the custom event from Sell.jsx
+    window.addEventListener("newProductPublished", handleNewProduct);
 
-    // 3. Cleanup: Remove the listener
-    return () => {
-      window.removeEventListener('newProductPublished', handleProductUpdate);
-    };
-  }, []); // Empty array ensures this runs only once on mount
+    // 4. Clean up the listener when the component unmounts
+    return () => {
+      window.removeEventListener("newProductPublished", handleNewProduct);
+    };
+  }, []); // The empty array [] ensures this setup only runs once
 
-  // 🛍 Add to cart (Unchanged from your version)
   const addToCart = (item) => {
-    const existing = cart.find((i) => i.id === item._id);
-    let updatedCart;
-
-    if (existing) {
-      updatedCart = cart.map((i) =>
-        i.id === item._id ? { ...i, quantity: i.quantity + 1 } : i
-      );
-    } else {
-      updatedCart = [...cart, { ...item, id: item._id, quantity: 1 }];
-    }
-
-    setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-
-    setCartMessage(`'${item.title || item.name}' has been added to your cart!`);
+    const existing = cart.find((i) => i._id === item._id);
+    const updated = existing
+      ? cart.map((i) => (i._id === item._id ? { ...i, quantity: i.quantity + 1 } : i))
+      : [...cart, { ...item, quantity: 1 }];
+    setCart(updated);
+    localStorage.setItem("cart", JSON.stringify(updated));
+    setCartMessage(`'${item.title}' added to cart!`);
     setTimeout(() => setCartMessage(""), 3000);
   };
 
-  // --- RENDER LOGIC ---
+  const displayed = activeTab === "new" ? newCalculators : oldCalculators;
 
-  // NEW: Handle Loading and Error states (Pattern from Book.jsx)
-  if (loading) {
-    return <div className="calculator-page"><p className="no-calculators">Loading calculators...</p></div>;
-  }
-
-  if (error) {
-    return <div className="calculator-page"><p className="no-calculators">{error}</p></div>;
-  }
-
-  // --- MODIFIED: Use the new state variables (Pattern from Book.jsx) ---
-  const displayedCalculators = activeTab === "new" ? newCalculators : oldCalculators;
+  if (loading) return <p>Loading calculators...</p>;
+  if (error) return <p>{error}</p>;
 
   return (
     <div className="calculator-page">
-      {/* 🛒 Cart Icon and Count */}
       <div className="cart-icon">
-        <span className="cart-count">{cartCount}</span>
+        <span className="cart-count">
+          {cart.reduce((acc, item) => acc + item.quantity, 0)}
+        </span>
         <img src="cart-icon.png" alt="Cart" />
       </div>
 
-      {/* 🔘 Tabs */}
       <div className="button-group">
         <button
           className={`tab-btn ${activeTab === "new" ? "active" : ""}`}
@@ -130,45 +92,37 @@ const [activeTab, setActiveTab] = useState("new");
         </button>
         <button
           className={`tab-btn ${activeTab === "old" ? "active" : ""}`}
-Â         onClick={() => setActiveTab("old")}
+          onClick={() => setActiveTab("old")}
         >
-          🔢 Old Calculators
+          {/* You can keep this label as "Old" for the user interface */}
+          🔢 Old Calculators 
         </button>
       </div>
 
-      {/* 🧾 Calculators Grid */}
       <div className="calculator-container">
-        {displayedCalculators.length > 0 ? (
-          displayedCalculators.map((calc) => (
-            <div className="calculator-card" key={calc._id}>
+        {displayed.length > 0 ? (
+          displayed.map((calc) => (
+            <div key={calc._id} className="calculator-card">
               <img
-                src={
-                  // This part is specific to your calculator data, which is correct
-                  calc.images && calc.images.length
-                    ? getImageSrc(calc.images[0])
-                    : "placeholder.png"
-                }
-alt={calc.title || calc.name}
-className="calculator-image"
- />
-<h3>{calc.title || calc.name}</h3>
-<p className="price">₹{parseFloat(calc.price).toFixed(2)}</p>
- <button className="add-btn" onClick={() => addToCart(calc)}>
- Add to Cart
- </button>
- </div>
-))
- ) : (
- <p className="no-calculators">
- No {activeTab} calculators available yet.
-</p>
-)}
-</div>
+                src={calc.images?.[0] ? getImageSrc(calc.images[0]) : "placeholder.png"}
+                alt={calc.title}
+                className="calculator-image"
+              />
+              <h3>{calc.title}</h3>
+              <p className="price">₹{calc.price}</p>
+              <button className="add-btn" onClick={() => addToCart(calc)}>
+                Add to Cart
+              </button>
+            </div>
+          ))
+        ) : (
+          <p>No {activeTab} calculators available.</p>
+        )}
+      </div>
 
- {/* 🧾 Cart Message */}
- {cartMessage && <div className="cart-message">{cartMessage}</div>}
- </div>
- );
+      {cartMessage && <div className="cart-message">{cartMessage}</div>}
+    </div>
+  );
 };
 
 export default Calculator;

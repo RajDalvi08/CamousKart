@@ -18,7 +18,7 @@ const About = () => {
     { 
       name: "New Lab Coat", 
       description: "Brand new lab coats for those who love a fresh start. Look sharp and experiment safely in style.", 
-      path: "/labcoats"
+      path: "/labcoat"
     },
     { 
       name: "Books", 

@@ -22,7 +22,7 @@ const Sell = () => {
   // --- FIX ---
   // These names now match your router file (e.g., "Labcoats", "EgKit")
   // This will prevent the "No routes matched" error on navigation.
-  const categories = ["Books", "Calculators", "Labcoats", "EgKit", "Drafters", "EgContainer"];
+  const categories = ["Books", "Calculators", "Labcoats", "EgKit", "Drafters", "egcontainer"];
 
   useEffect(() => {
     const savedDraft = localStorage.getItem("productDraft");
@@ -93,62 +93,66 @@ const Sell = () => {
     return true;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
+  if (!validateForm()) return;
 
-    if (images.length === 0) {
-      alert("Please upload at least one product image!");
-      return;
-    }
+  if (images.length === 0) {
+    alert("Please upload at least one product image!");
+    return;
+  }
 
-    const data = new FormData();
-    data.append("title", formData.title);
-    data.append("category", formData.category);
-    data.append("description", formData.description);
-    data.append("price", formData.price);
-    data.append("condition", formData.condition);
-    data.append("location", formData.location);
-    data.append("contactInfo", formData.contactInfo);
-    data.append("image", images[0].file); 
+  const data = new FormData();
+  data.append("title", formData.title);
+  data.append("category", formData.category);
+  data.append("description", formData.description);
+  data.append("price", formData.price);
+  data.append("condition", formData.condition);
+  data.append("location", formData.location);
+  data.append("contactInfo", formData.contactInfo);
 
-    try {
-      const res = await axios.post("http://localhost:5000/api/sell/add", data, {
-        headers: { "Content-Type": "multipart/form-data" },
+  // ✅ Append all uploaded images
+  images.forEach((img) => {
+    data.append("images", img.file);
+  });
+
+  try {
+    const res = await axios.post("http://localhost:5000/api/products", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    if (res.status === 200 || res.status === 201) {
+      window.dispatchEvent(new Event("newProductPublished"));
+      alert("✅ Product listed successfully!");
+
+      localStorage.removeItem("productDraft");
+      setFormData({
+        title: "",
+        category: "",
+        description: "",
+        price: "",
+        condition: "used",
+        location: "",
+        contactInfo: "",
       });
+      setImages([]);
 
-      if (res.status === 200 || res.status === 201) {
-        
-        window.dispatchEvent(new Event('newProductPublished'));
-        
-        alert("✅ Product listed successfully!");
-        
-        localStorage.removeItem("productDraft");
-        setFormData({
-            title: "", category: "", description: "", price: "",
-            condition: "used", location: "", contactInfo: "",
-        });
-        setImages([]);
-
-        // This will now correctly navigate to "/labcoats", "/egkit", etc.
-        const categoryPath = formData.category.toLowerCase();
-        navigate(`/${categoryPath}`);
-      
-      } else {
-        alert("❌ Failed to list product. Please try again.");
-      }
-    } catch (err) {
-      console.error("Error uploading product:", err);
-      if (err.response) {
-        alert(`⚠️ Error: ${err.response.data.message || "Failed to upload product"}`);
-      } else {
-        alert("⚠️ An unexpected network error occurred. Check your server connection.");
-      }
+      const categoryPath = formData.category.toLowerCase();
+      navigate(`/${categoryPath}`);
+    } else {
+      alert("❌ Failed to list product. Please try again.");
     }
-  };
+  } catch (err) {
+    console.error("Error uploading product:", err);
+    if (err.response) {
+      alert(`⚠️ Error: ${err.response.data.message || "Failed to upload product"}`);
+    } else {
+      alert("⚠️ An unexpected network error occurred. Check your server connection.");
+    }
+  }
+};
+
 
   const handleSaveDraft = () => {
     localStorage.setItem("productDraft", JSON.stringify({ ...formData, images }));

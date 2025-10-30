@@ -1,11 +1,14 @@
 .labcoat-page {
-  padding: 10px;
-  background-color: #fefefe;
+  padding: 20px;
+  background: #fefefe;
   min-height: 100vh;
   font-family: 'Poppins', sans-serif;
+  background-image: url('https://rukmini1.flixcart.com/image/300/300/kf75fgw0/document-tube/b/d/b/paper-container-drawing-sheet-document-holder-for-engineering-original-imafvptmy8gefemf.jpeg');
+  background-size: cover;
+  background-position: center;
 }
 
-/* Button Group */
+/* Tabs */
 .button-group {
   display: flex;
   justify-content: center;
@@ -35,87 +38,121 @@
   box-shadow: 0px 8px 20px rgba(52, 152, 219, 0.4);
 }
 
-/* Lab Coats Grid */
-.labcoat-container {
+/* Product Grid */
+.labcoat-grid {
   display: flex;
-  gap: 50px;
   flex-wrap: wrap;
   justify-content: center;
-  background: url('https://png.pngtree.com/background/20230614/original/pngtree-lab-coat-hanging-on-a-rack-picture-image_3503422.jpg');
-  padding-top: 30px;
+  gap: 30px;
   padding-bottom: 30px;
 }
 
+/* Card */
 .labcoat-card {
   background: #fff;
   border-radius: 16px;
-  padding: 28px 44px;
+  padding: 24px 20px;
   text-align: center;
-  box-shadow: 0 10px 20px rgb(30, 121, 102),
-              0 6px 6px rgba(234, 234, 234, 0.975);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  width: 240px;
 }
 
 .labcoat-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0px 12px 30px rgba(13, 130, 143, 0.771);
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Image */
+.img-wrapper {
+  position: relative;
 }
 
 .labcoat-image {
-  width: 150px;
-  height: 200px;
+  width: 180px;
+  height: 220px;
   object-fit: cover;
-  margin-bottom: 15px;
+  border-radius: 10px;
+  margin-bottom: 12px;
 }
 
+/* Favorite button */
+.fav-btn {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.fav-btn:hover {
+  transform: scale(1.2);
+}
+
+.fav-btn.active {
+  color: #e74c3c;
+}
+
+/* Price & Button */
 .price {
   font-size: 18px;
   font-weight: 600;
   color: #3498db;
-  margin: 8px 0;
+  margin: 10px 0;
 }
 
 .add-btn {
   background: #3498db;
-  color: #fff;
+  color: white;
   border: none;
   padding: 10px 18px;
   border-radius: 25px;
   font-size: 14px;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: background 0.3s ease;
 }
 
 .add-btn:hover {
   background: #217dbb;
 }
 
+/* Cart */
 .cart-icon {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #3498db;
+  border-radius: 50%;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 .cart-count {
-  background-color: #3498db;
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #e74c3c;
   color: #fff;
   border-radius: 50%;
-  padding: 5px 10px;
-  font-weight: 600;
-  position: absolute;
-  top: -10px;
-  right: -10px;
+  padding: 4px 8px;
+  font-size: 13px;
+  font-weight: bold;
 }
 
+/* Message */
 .cart-message {
-  margin-top: 20px;
-  text-align: center;
-  background: #3498db;
+  background-color: #28a745;
   color: #fff;
-  padding: 10px;
+  padding: 12px;
   border-radius: 5px;
-}
-
-.fav-icon.filled {
-margin-left: 40%;
+  text-align: center;
+  margin-top: 20px;
+  font-weight: 500;
 }

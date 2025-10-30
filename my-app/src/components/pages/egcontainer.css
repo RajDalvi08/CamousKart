@@ -1,84 +1,104 @@
-/* egcontainer.css */
+/* 🌟 Page Layout */
 .egcontainer-page {
-  padding: 20px;
-  background-color: #fefefe;
+  padding: 40px 20px;
   min-height: 100vh;
-  font-family: 'Poppins', sans-serif;
-  background-image: url('https://rukmini1.flixcart.com/image/300/300/kf75fgw0/document-tube/b/d/b/paper-container-drawing-sheet-document-holder-for-engineering-original-imafvptmy8gefemf.jpeg');
+  background: linear-gradient(to bottom right, #f7f9fc, #eef3f8);
+  font-family: "Poppins", sans-serif;
+  background-image: url("https://rukmini1.flixcart.com/image/300/300/kf75fgw0/document-tube/b/d/b/paper-container-drawing-sheet-document-holder-for-engineering-original-imafvptmy8gefemf.jpeg");
   background-size: cover;
   background-position: center;
+  background-attachment: fixed;
 }
 
-/* Button Group */
+/* 🔘 Tabs */
 .button-group {
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 16px;
   margin-bottom: 30px;
+  flex-wrap: wrap;
 }
 
 .tab-btn {
-  background: #ecf0f1;
-  border: none;
-  padding: 12px 24px;
-  font-size: 16px;
+  background: #ffffff;
+  border: 2px solid #3498db;
+  padding: 10px 24px;
+  font-size: 15px;
   font-weight: 600;
   border-radius: 30px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.1);
-}
-
-.tab-btn:hover {
-  background: #dfe6e9;
+  color: #3498db;
 }
 
 .tab-btn.active {
   background: #3498db;
   color: #fff;
-  box-shadow: 0px 8px 20px rgba(52, 152, 219, 0.4);
+  box-shadow: 0px 8px 20px rgba(52, 152, 219, 0.35);
 }
 
-/* Products Grid */
-.eg-container {
-  display: flex;
-  gap: 40px;
-  flex-wrap: wrap;
-  justify-content: center;
-  padding-top: 30px;
-  padding-bottom: 30px;
+.tab-btn:hover {
+  background: #2980b9;
+  color: #fff;
 }
 
+/* 🧱 Product Grid */
+.eg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1px;
+  justify-items: center;
+  padding: 20px;
+}
+
+/* 🛍️ Product Card */
 .eg-card {
-  background: #fff;
+  background: #ffffffd8;
+  backdrop-filter: blur(4px);
   border-radius: 16px;
-  padding: 28px 24px;
+  padding: 20px;
+  width: 100%;
+  max-width: 260px;
   text-align: center;
-  box-shadow: 0 10px 20px rgb(30, 121, 102),
-              0 6px 6px rgba(234, 234, 234, 0.975);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .eg-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.15);
+  transform: translateY(-6px);
+  box-shadow: 0 10px 25px rgba(52, 152, 219, 0.25);
 }
 
+/* 🖼 Product Image */
 .eg-image {
-  width: 180px;
-  height: 240px;
+  width: 100%;
+  height: 220px;
   object-fit: cover;
+  border-radius: 12px;
   margin-bottom: 15px;
-  border-radius: 8px;
+  transition: transform 0.3s ease;
+}
+
+.eg-card:hover .eg-image {
+  transform: scale(1.05);
+}
+
+/* 🏷 Title and Price */
+.eg-card h3 {
+  font-size: 17px;
+  color: #2c3e50;
+  margin: 10px 0 5px;
 }
 
 .price {
   font-size: 18px;
   font-weight: 600;
   color: #3498db;
-  margin: 8px 0;
+  margin-bottom: 10px;
 }
 
+/* 🛒 Add to Cart Button */
 .add-btn {
   background: #3498db;
   color: #fff;
@@ -87,28 +107,39 @@
   border-radius: 25px;
   font-size: 14px;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: background 0.3s ease, transform 0.2s ease;
 }
 
 .add-btn:hover {
   background: #217dbb;
+  transform: translateY(-2px);
 }
 
-/* Cart Message */
+/* 💬 Cart Message */
 .cart-message {
   background-color: #28a745;
   color: #fff;
-  padding: 12px;
-  border-radius: 5px;
+  padding: 12px 18px;
+  border-radius: 6px;
   text-align: center;
   margin-top: 20px;
+  width: fit-content;
+  margin-inline: auto;
+  font-weight: 500;
+  animation: fadeInOut 3s ease forwards;
 }
 
-/* Cart Icon */
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(10px); }
+  10%, 90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
+/* 🛒 Floating Cart Icon */
 .cart-icon {
   position: fixed;
   top: 20px;
-  right: 20px;
+  right: 25px;
   background-color: #3498db;
   border-radius: 50%;
   padding: 12px;
@@ -116,51 +147,32 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 4px 15px rgba(52, 152, 219, 0.4);
+  z-index: 1000;
+}
+
+.cart-icon img {
+  width: 28px;
+  height: 28px;
 }
 
 .cart-count {
   position: absolute;
-  top: -5px;
-  right: -5px;
+  top: 5px;
+  right: 5px;
   background-color: #e74c3c;
   color: white;
   border-radius: 50%;
-  padding: 5px 10px;
-  font-size: 14px;
+  padding: 3px 7px;
+  font-size: 13px;
+  font-weight: bold;
 }
 
-/* Product Tabs */
-.tab-btn {
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.tab-btn.active {
-  background-color: #3498db;
-  color: #fff;
-}
-
-.tab-btn:hover {
-  background: #dfe6e9;
-}
-
-/* Product Images */
-.eg-image {
-  width: 180px;
-  height: 240px;
-  object-fit: cover;
-  border-radius: 10px;
-}
-
-/* Cart Empty Message */
+/* 💤 Empty State */
+.loading-text,
 .cart-empty {
   text-align: center;
   font-size: 18px;
   color: #7f8c8d;
-  margin-top: 50px;
+  margin-top: 60px;
 }
