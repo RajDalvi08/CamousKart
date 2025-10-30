@@ -25,7 +25,7 @@ const Checkout = () => {
     return () => document.body.removeChild(script);
   }, []);
 
-  // ✅ Load cart
+  // ✅ Load cart items
   useEffect(() => {
     if (location.state?.cartItems) setCartItems(location.state.cartItems);
     else {
@@ -34,14 +34,19 @@ const Checkout = () => {
     }
   }, [location.state]);
 
+  // ✅ Handle input
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setShippingInfo({ ...shippingInfo, [name]: value });
   };
 
-  const total = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  // ✅ Calculate total price
+  const total = cartItems.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0
+  );
 
-  // ✅ Cash on Delivery handler
+  // ✅ Cash on Delivery
   const handlePlaceOrder = () => {
     if (!shippingInfo.name || !shippingInfo.address || !shippingInfo.phone) {
       return alert("Please fill in all shipping details!");
@@ -52,19 +57,19 @@ const Checkout = () => {
     setTimeout(() => navigate("/"), 2000);
   };
 
-  // ✅ Razorpay Online Payment handler
+  // ✅ Razorpay Online Payment
   const handleRazorpayPayment = async () => {
     if (!shippingInfo.name || !shippingInfo.address || !shippingInfo.phone) {
       return alert("Please fill in all shipping details!");
     }
 
-    const totalAmount = total * 100; // in paise (1 INR = 100 paise)
-    console.log("💰 Creating Razorpay order for amount:", totalAmount);
+    console.log("💰 Creating Razorpay order for amount (INR):", total);
 
+    // ✅ Send amount in INR (no *100)
     const response = await fetch("http://localhost:5000/api/payment/create-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount: totalAmount }),
+      body: JSON.stringify({ amount: total }),
     });
 
     const data = await response.json();
@@ -75,8 +80,8 @@ const Checkout = () => {
     }
 
     const options = {
-      key: "rzp_test_RZbpvX1bvaqHRf", // ✅ your Razorpay test key
-      amount: data.amount,
+      key: "rzp_test_RZbpvX1bvaqHRf", // ✅ Your Razorpay test key
+      amount: data.amount, // already in paise from backend
       currency: data.currency,
       name: "CampusKart",
       description: "Order Payment",
@@ -94,7 +99,6 @@ const Checkout = () => {
         contact: shippingInfo.phone,
       },
       theme: { color: "#3399cc" },
-      method: paymentMethod === "upi" ? { upi: true } : {},
     };
 
     const rzp = new window.Razorpay(options);
@@ -128,12 +132,14 @@ const Checkout = () => {
 
       <div className="checkout-body">
         <div className="checkout-left">
-          {/* Shipping */}
+          {/* Shipping Info */}
           <div className="checkout-card">
             <h2>Shipping Information</h2>
             {["name", "email", "phone", "address"].map((field) => (
               <div className="form-group" key={field}>
-                <label>{field.charAt(0).toUpperCase() + field.slice(1)} *</label>
+                <label>
+                  {field.charAt(0).toUpperCase() + field.slice(1)} *
+                </label>
                 {field !== "address" ? (
                   <input
                     type={field === "email" ? "email" : "text"}
