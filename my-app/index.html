@@ -2,12 +2,37 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
+    <title>CampusKart</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+
+    <!-- ✅ Razorpay Checkout Script (loaded globally once) -->
+    <script
+      src="https://checkout.razorpay.com/v1/checkout.js"
+      async
+      defer
+    ></script>
+
+    <!-- Optional: Font & styling enhancements -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0;
+        font-family: "Poppins", sans-serif;
+        background-color: #f9fafb;
+      }
+    </style>
   </head>
+
   <body>
     <div id="root"></div>
+
+    <!-- ✅ React entry point -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -16,7 +16,7 @@ const Checkout = () => {
   });
   const [orderSuccess, setOrderSuccess] = useState(false);
 
-  // Load Razorpay script
+  // ✅ Load Razorpay script once
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
@@ -25,7 +25,7 @@ const Checkout = () => {
     return () => document.body.removeChild(script);
   }, []);
 
-  // Load cart items
+  // ✅ Load cart
   useEffect(() => {
     if (location.state?.cartItems) setCartItems(location.state.cartItems);
     else {
@@ -41,40 +41,49 @@ const Checkout = () => {
 
   const total = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
-  // COD Payment
+  // ✅ Cash on Delivery handler
   const handlePlaceOrder = () => {
     if (!shippingInfo.name || !shippingInfo.address || !shippingInfo.phone) {
       return alert("Please fill in all shipping details!");
     }
+    console.log("🧾 COD order placed successfully!");
     setOrderSuccess(true);
     localStorage.removeItem("cart");
     setTimeout(() => navigate("/"), 2000);
   };
 
-  // Razorpay Payment
+  // ✅ Razorpay Online Payment handler
   const handleRazorpayPayment = async () => {
     if (!shippingInfo.name || !shippingInfo.address || !shippingInfo.phone) {
       return alert("Please fill in all shipping details!");
     }
 
-    const totalAmount = total * 100; // in paise
+    const totalAmount = total * 100; // in paise (1 INR = 100 paise)
+    console.log("💰 Creating Razorpay order for amount:", totalAmount);
 
     const response = await fetch("http://localhost:5000/api/payment/create-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ amount: totalAmount }),
     });
+
     const data = await response.json();
+    console.log("📦 Razorpay Order from backend:", data);
+
+    if (!data || !data.id) {
+      return alert("Error creating Razorpay order. Check backend logs!");
+    }
 
     const options = {
-      key: "YOUR_RAZORPAY_KEY", // Test Key
+      key: "rzp_test_RZbpvX1bvaqHRf", // ✅ your Razorpay test key
       amount: data.amount,
       currency: data.currency,
       name: "CampusKart",
       description: "Order Payment",
       order_id: data.id,
       handler: function (response) {
-        console.log("Payment Success:", response);
+        console.log("✅ Payment Success:", response);
+        alert("Payment Successful!");
         setOrderSuccess(true);
         localStorage.removeItem("cart");
         setTimeout(() => navigate("/"), 2000);
@@ -85,12 +94,15 @@ const Checkout = () => {
         contact: shippingInfo.phone,
       },
       theme: { color: "#3399cc" },
+      method: paymentMethod === "upi" ? { upi: true } : {},
     };
 
-    // Enforce UPI if selected
-    if (paymentMethod === "upi") options.method = { upi: true };
-
     const rzp = new window.Razorpay(options);
+    rzp.on("payment.failed", function (response) {
+      console.error("❌ Payment Failed:", response.error);
+      alert("Payment failed. Please try again!");
+    });
+
     rzp.open();
   };
 
