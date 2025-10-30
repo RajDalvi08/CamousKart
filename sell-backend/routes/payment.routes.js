@@ -1,31 +1,34 @@
 import express from "express";
 import Razorpay from "razorpay";
-import dotenv from "dotenv";
 
-dotenv.config();
 const router = express.Router();
 
-// Razorpay instance
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY,
-  key_secret: process.env.RAZORPAY_SECRET,
-});
-
-// Create Razorpay order
 router.post("/create-order", async (req, res) => {
-  const { amount } = req.body;
-  if (!amount) return res.status(400).json({ error: "Amount is required" });
-
   try {
-    const order = await razorpay.orders.create({
-      amount,
-      currency: "INR",
-      payment_capture: 1,
+    // ✅ Initialize Razorpay using environment variables
+    const razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
-    res.json(order);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to create order" });
+
+    console.log("✅ Razorpay initialized with:", process.env.RAZORPAY_KEY_ID);
+
+    // ✅ Options for the order
+    const options = {
+      amount: req.body.amount * 100, // convert to paise
+      currency: "INR",
+      receipt: "receipt_order_123",
+    };
+
+    // ✅ Create order
+    const order = await razorpay.orders.create(options);
+
+    console.log("🧾 Razorpay Order Created:", order.id);
+
+    res.status(200).json(order);
+  } catch (error) {
+    console.error("❌ Razorpay Error:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 
