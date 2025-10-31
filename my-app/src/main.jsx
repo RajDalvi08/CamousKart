@@ -89,14 +89,31 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           }
         />
         // ...
-        <Route
-          path="labcoat"  // <--- This is the correct path
-          element={
-            <ProtectedRoute>
-              <Labcoat />
-            </ProtectedRoute>
-          }
-        />
+      <Route
+  path="labcoat"
+  element={
+    <ProtectedRoute>
+      <Labcoat />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="Labcoat"
+  element={
+    <ProtectedRoute>
+      <Labcoat />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="Labcoats"
+  element={
+    <ProtectedRoute>
+      <Labcoat />
+    </ProtectedRoute>
+  }
+/>
+
 
         {/* --- END LAB COATS --- */}
         <Route

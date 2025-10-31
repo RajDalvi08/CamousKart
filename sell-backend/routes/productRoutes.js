@@ -85,4 +85,20 @@ router.get("/egkit", async (req, res) => {
   }
 });
 
+
+
+// ✅ Delete product by ID
+router.delete("/:id", async (req, res) => {
+  try {
+    const deleted = await Product.findByIdAndDelete(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    res.json({ message: "Product deleted successfully", deleted });
+  } catch (err) {
+    console.error("Error deleting product:", err);
+    res.status(500).json({ message: "Failed to delete product" });
+  }
+});
+
 export default router;

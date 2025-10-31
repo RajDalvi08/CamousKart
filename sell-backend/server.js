@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import productRoutes from "./routes/productRoutes.js";
 import paymentRoutes from "./routes/payment.routes.js";
+import authRoutes from "./routes/auth.routes.js"; // ✅ Correct import
 
 // ✅ Load environment variables before anything else
 dotenv.config({ path: "./.env" });
@@ -14,25 +15,30 @@ connectDB();
 const app = express();
 
 // ✅ Middleware setup
-app.use(cors({
-  origin: "http://localhost:5173", // allow frontend
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
-app.use(express.json()); // important for reading req.body
+app.use(
+  cors({
+    origin: "http://localhost:5173", // your React app
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+app.use(express.json()); // Parse JSON bodies
 
-// ✅ Basic health check route
+// ✅ Health check route
 app.get("/", (req, res) => {
   res.send("🚀 Backend is running successfully!");
 });
 
-// ✅ Routes
+// ✅ API Routes
 app.use("/api/products", productRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/auth", authRoutes); // ✅ Auth route mounted
 
-// ✅ Serve uploaded files
+// ✅ Serve uploaded files (if any)
 app.use("/uploads", express.static("uploads"));
 
 // ✅ Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`✅ Server running on port ${PORT}`)
+);

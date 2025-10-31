@@ -97,7 +97,7 @@ const Home = () => {
             {
               name: "Lab Coats",
               img: "https://i5.walmartimages.com/asr/9f19dc11-83a7-4035-a68c-a73e1791b632_1.22fec432b3f6dd1325b2c83cceea31d3.jpeg",
-              link: "/labcoats",
+              link: "/labcoat",
             },
             {
               name: "EG Kit",

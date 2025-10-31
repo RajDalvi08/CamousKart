@@ -156,3 +156,89 @@
   margin-top: 20px;
   font-weight: 500;
 }
+
+
+
+.qty-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.remove-btn {
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.remove-btn:hover {
+  background-color: #d9363e;
+}
+
+.quantity {
+  font-weight: bold;
+  min-width: 24px;
+  text-align: center;
+}
+/* 🧥 Header Section */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #ffffff, #f3f7ff);
+  border: 1px solid #e0e6ef;
+  border-radius: 14px;
+  padding: 14px 24px;
+  margin: 25px auto 20px;
+  max-width: 900px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.header-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+/* 🧥 Title */
+.header-section h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #1b1f3b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.5px;
+}
+
+/* ❌ Remove All Button */
+.remove-all-btn {
+  background: linear-gradient(135deg, #ff4b4b, #d93636);
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(255, 75, 75, 0.3);
+  transition: all 0.25s ease;
+}
+
+.remove-all-btn:hover {
+  background: linear-gradient(135deg, #e84141, #c93030);
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(255, 75, 75, 0.4);
+}
+
+.remove-all-btn:active {
+  transform: scale(0.97);
+  background: linear-gradient(135deg, #cc2929, #b21d1d);
+}
+

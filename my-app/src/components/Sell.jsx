@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Upload, X, MapPin, DollarSign, Tag } from "lucide-react";
+import { Upload, X, MapPin,  Tag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./sell.css"
@@ -274,7 +274,7 @@ const handleSubmit = async (e) => {
             <div className="form-group" style={{ display: 'flex', flexDirection: 'column' }}>
               <label style={{ marginBottom: '5px', fontWeight: 'bold' }}>Price (₹) *</label>
               <div className="input-container" style={{ position: 'relative' }}>
-                <DollarSign className="input-icon" size={18} style={{ position: 'absolute', left: '10px', top: '12px', color: '#777' }} />
+                <div className="input-icon" size={18} style={{ position: 'absolute', left: '10px', top: '12px', color: '#777' }} />
                 <input
                   type="number"
                   name="price"

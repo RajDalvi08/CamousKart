@@ -76,11 +76,12 @@ const Drafter = () => {
   return (
     <div className="drafter-page">
       {/* 🛒 Cart Icon */}
+      
       <div className="cart-icon">
         <span className="cart-count">
-          {cart.reduce((acc, item) => acc + item.quantity, 0)}
+          
         </span>
-        <img src="cart-icon.png" alt="Cart" />
+      
       </div>
 
       {/* 🔘 Tabs */}

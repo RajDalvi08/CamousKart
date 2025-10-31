@@ -54,10 +54,8 @@ const EgKit = () => {
   return (
     <div className="book-page">
       {/* 🛒 Cart Icon */}
-      <div className="cart-icon">
-        <span className="cart-count">{cartCount}</span>
-        <img src="/cart-icon.png" alt="Cart" className="cart-img" />
-      </div>
+      
+     
 
       {/* 🔘 Tabs */}
       <div className="button-group">

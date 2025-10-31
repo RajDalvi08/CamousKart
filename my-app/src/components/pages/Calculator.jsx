@@ -76,11 +76,12 @@ const Calculator = () => {
 
   return (
     <div className="calculator-page">
+   
       <div className="cart-icon">
         <span className="cart-count">
-          {cart.reduce((acc, item) => acc + item.quantity, 0)}
+         
         </span>
-        <img src="cart-icon.png" alt="Cart" />
+        
       </div>
 
       <div className="button-group">

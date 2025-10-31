@@ -5,21 +5,21 @@ const router = express.Router();
 
 router.post("/create-order", async (req, res) => {
   try {
-    const { amount } = req.body; // amount in INR (not paise)
+    let { amount } = req.body;
 
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ error: "Invalid amount" });
+    if (!amount || isNaN(amount) || amount < 1) {
+      return res.status(400).json({ error: "Amount must be at least ₹1" });
     }
+
+    amount = Math.round(amount * 100); // convert to paise
 
     const razorpay = new Razorpay({
       key_id: process.env.RAZORPAY_KEY_ID,
       key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
 
-    console.log("✅ Razorpay initialized with:", process.env.RAZORPAY_KEY_ID);
-
     const options = {
-      amount: Math.round(amount * 100), // convert to paise here only
+      amount,
       currency: "INR",
       receipt: `receipt_${Date.now()}`,
     };
@@ -33,5 +33,6 @@ router.post("/create-order", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 export default router;
